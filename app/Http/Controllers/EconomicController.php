@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\EconomicCalendar;
+use App\Models\EconomicJiedu;
 
 class EconomicController extends Controller
 {
@@ -89,7 +90,15 @@ class EconomicController extends Controller
         $id = $request->input('idx_id');
         if(!is_null($id)) {
             $all_data = EconomicCalendar::where("dataname_id", $id)
-                ->where('pub_time', '<', date('Y-m-d H:i:s'))
+                ->where('pub_time', '<=', date('Y-m-d H:i:s'))
+                ->orderBy('pub_time', 'desc')
+                ->take(9)
+                ->get();
+
+            $next_data = EconomicCalendar::where("dataname_id", $id)
+                ->where('pub_time', '>', date('Y-m-d H:i:s'))
+                ->orderBy('pub_time', 'asc')
+                ->take(1)
                 ->get();
 
             $x_data = [];
@@ -101,10 +110,11 @@ class EconomicController extends Controller
             }
 
             $result = [
-                "riliData"  =>  $this->dataToData($all_data->toArray()),
+                "riliData"  =>  $this->dataToData(array_merge($next_data->toArray(), $all_data->toArray())),
                 "xdata"     =>  $x_data,
                 "ydata"     =>  $y_data
             ];
+
             return $result;
         }
     }
@@ -112,18 +122,23 @@ class EconomicController extends Controller
     public function getjiedudata(Request $request) {
         $id = $request->input('idx_id');
         if(!is_null($id)) {
-            $data = EconomicCalendar::where("dataname_id", $id)
+            $data = EconomicJiedu::where("dataname_id", $id)
                 ->first()
                 ->toArray();
 
-            return $this->dataToData([$data])[0];
+            $data_info = EconomicCalendar::where('dataname_id', $id)->select('dataname', 'country', 'unit')->first()->toArray();
+            $data['dataname'] = $data_info['dataname'];
+            $data['country_cn'] = $data_info['country'];
+            $data['unit'] = $data_info['unit'];
+
+            return $this->dataToData([$data]);
         }
     }
 
     private function dataToData($data){
         $key_map = [
             'id'                => 'id',
-            'dataname_id'       => 'idx_id',
+            'dataname_id'       => 'IDX_ID',
             'pub_time'          => 'stime',
             'quota_name'        => 'title',
             'country'           => 'country_cn',
@@ -131,7 +146,14 @@ class EconomicController extends Controller
             'former_value'      => 'previous_price',
             'predicted_value'   => 'surver_price',
             'published_value'   => 'actual_price',
-            'unit'              => 'unit'
+            'unit'              => 'UNIT',
+            'pub_frequency'     => 'UPDATE_PERIOD',
+            'data_influence'    => 'PARAGHRASE',
+            'pub_agent'         => 'PUBLISH_ORG',
+            'data_define'       => 'PARAGHRASE',
+            'count_way'         => 'PIC_INTERPRET',
+            'country_cn'        => 'COUNTRY_CN',
+            'dataname'          => 'IDX_DESC_CN'
         ];
 
         $ret = [];
