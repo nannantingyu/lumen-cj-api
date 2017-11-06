@@ -47,6 +47,7 @@ class EconomicController extends Controller
         }
 
         $past = $past->get()->toArray();
+        $past = array_reverse($past);
 
         $will = EconomicCalendar::whereDate('pub_time', $date)->where('pub_time', '>', $now)->orderBy("pub_time", "asc");
         if(!is_null($limit2)) {
@@ -69,6 +70,7 @@ class EconomicController extends Controller
         $all_weeks = [];
 
         $week_now = date('w', $date);
+        $week_now = $week_now == 0?7:$week_now;
         for($index = 1; $index <= 7; $index ++) {
             $timestmp = $date + ($index - $week_now) * 24 * 3600;
             $all_weeks[] = [
@@ -79,8 +81,8 @@ class EconomicController extends Controller
             ];
         }
 
-        $result['pre'] = date("Y-m-d", strtotime( '+'. 1 - $week_now .' days' ));
-        $result['next'] = date("Y-m-d", strtotime( '+'. 3 - $week_now .' days' ));
+        $result['pre'] = date("Y-m-d", $date - 24 * 3600);
+        $result['next'] = date("Y-m-d", $date + 24 * 3600);
         $result['w'] = $all_weeks;
 
         return $result;
