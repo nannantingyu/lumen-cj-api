@@ -34,7 +34,9 @@ class EconomicController extends Controller
         $ret['sjdata'] = $sjdata;
         $ret['hdata'] = $hjdata;
 
-        \Cache::store('file')->put($cache_key, json_encode($ret), 120);
+
+        $expire = $date == date("Y-m-d") ? 2: 120;
+        \Cache::store('file')->put($cache_key, json_encode($ret), $expire);
         return $ret;
     }
 
