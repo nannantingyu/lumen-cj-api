@@ -12,7 +12,7 @@
 */
 
 $router->get('/', function () use ($router) {
-    return $router->app->version();
+    return "<div style=\"width: 100%; font-size: 50px; padding-top:10%; padding-bottom:10%; text-align: center; font-family: 'Microsoft JhengHei', 'Arial','Microsoft YaHei','黑体','宋体', sans-serif;\"><p>聚金财经</p></div>";
 });
 
 
