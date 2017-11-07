@@ -5,9 +5,73 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\EconomicCalendar;
 use App\Models\EconomicJiedu;
+use App\Models\EconomicEvent;
+use App\Models\EconomicHoliday;
 
 class EconomicController extends Controller
 {
+    public function getcjdatas(Request $request) {
+        $date = $request->input("d", date("Y-m-d"));
+        $cache_key = 'getcjdatas'.$date;
+        $value = \Cache::store('file')->get($cache_key);
+        if ($value) {
+            return json_decode($value, true);
+        }
+
+        $weekData = $this->getWeekData($request);
+        $cjdata = $this->getDates($request);
+
+        $all_cj = [];
+        foreach($cjdata as $data) {
+            $all_cj[substr($data['stime'], 11, 5).'_'.$data['country_cn']]['_ch'][] = $data;
+        }
+
+        $sjdata = $this->getcjevent($request);
+        $hjdata = $this->getcjholiday($request);
+
+        $ret['date'] = $weekData;
+        $ret['cjdata'] = $all_cj;
+        $ret['sjdata'] = $sjdata;
+        $ret['hdata'] = $hjdata;
+
+        \Cache::store('file')->put($cache_key, json_encode($ret), 120);
+        return $ret;
+    }
+
+    public function getcjevent(Request $request) {
+        $date = $request->input("d", date("Y-m-d"));
+        $sj_data = EconomicEvent::whereDate('time', $date)
+            ->select("id", 'time as event_time', 'country', 'city as area', 'importance', 'event as event_desc')
+            ->get()
+            ->toArray();
+
+        $sj_data = array_map(function ($dt) {
+            $dt['event_time'] = substr($dt['event_time'], 11, 5);
+            $dt['time_flag'] = 1;
+            return $dt;
+        }, $sj_data);
+
+        return $sj_data;
+    }
+
+    public function getcjholiday(Request $request) {
+        $date = $request->input("d", date("Y-m-d"));
+        $hj_data = EconomicHoliday::whereDate('time', $date)
+            ->select("id", 'time as event_time', 'country', 'market as area', 'detail as event_desc')
+            ->get()
+            ->toArray();
+
+        $hj_data = array_map(function($dt){
+            $dt['event_time'] = substr($dt['event_time'], 5, 5);
+            $dt['importance'] = 3;
+            $dt['time_flog'] = null;
+
+            return $dt;
+        }, $hj_data);
+
+        return $hj_data;
+    }
+
     public function getDates(Request $request) {
         $date = $request->input("d", date("Y-m-d"));
         $limit = $request->input("limit");
@@ -15,7 +79,7 @@ class EconomicController extends Controller
         $ci = $request->input("ci", 0);
 
         $calendars = EconomicCalendar::whereDate('pub_time', $date);
-        if(!is_null($reg)) {
+        if(!empty($reg)) {
             $calendars = $calendars->where('country', $reg);
         }
 

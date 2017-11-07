@@ -21,3 +21,6 @@ $router->get('/getPastorWillFd', 'EconomicController@getPastorWillFd');
 $router->get('/getWeekData', 'EconomicController@getWeekData');
 $router->get('/getjiedu', 'EconomicController@getjiedu');
 $router->get('/getjiedudata', 'EconomicController@getjiedudata');
+$router->get('/getcjdatas', 'EconomicController@getcjdatas');
+$router->get('/getcjevent', 'EconomicController@getcjevent');
+$router->get('/getcjholiday', 'EconomicController@getcjholiday');
