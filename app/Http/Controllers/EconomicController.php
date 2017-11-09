@@ -134,6 +134,7 @@ class EconomicController extends Controller
     }
 
     public function getWeekData(Request $request) {
+        $pcOrm = $request->input('pcOrm', 'pc');
         $date = strtotime($request->input('d', date('Y-m-d')));
         if(!$date) {
             $date = time();
@@ -145,19 +146,32 @@ class EconomicController extends Controller
 
         $week_now = date('w', $date);
         $week_now = $week_now == 0?7:$week_now;
-        for($index = 1; $index <= 7; $index ++) {
-            $timestmp = $date + ($index - $week_now) * 24 * 3600;
-            $all_weeks[] = [
-                'd'     => date("Y-m-d", $timestmp),
-                'z'     => $weeks[$index-1],
-                'r'     => date("m-d", $timestmp),
-                'dz'    => date("m-d", $timestmp) == date("m-d", $date)?1 : 0
-            ];
-        }
 
-        $result['pre'] = date("Y-m-d", $date - ($week_now+6) * 24 * 3600);
-        $result['next'] = date("Y-m-d", $date + (8-$week_now) *24 * 3600);
-        $result['w'] = $all_weeks;
+//        var_dump($week_now);
+//        die;
+        if($pcOrm == 'pc') {
+            for($index = 1; $index <= 7; $index ++) {
+                $timestmp = $date + ($index - $week_now) * 24 * 3600;
+                $all_weeks[] = [
+                    'd'     => date("Y-m-d", $timestmp),
+                    'z'     => $weeks[$index-1],
+                    'r'     => date("m-d", $timestmp),
+                    'dz'    => date("m-d", $timestmp) == date("m-d", $date)?1 : 0
+                ];
+            }
+
+            $result['pre'] = date("Y-m-d", $date - ($week_now+6) * 24 * 3600);
+            $result['next'] = date("Y-m-d", $date + (8-$week_now) *24 * 3600);
+            $result['w'] = $all_weeks;
+        }
+        else {
+            for($index = -2; $index <= 2; $index ++) {
+                $result[2-$index] = [
+                    "d" => date("Y-m-d", $date - $index * 24 * 3600),
+                    "w" => $weeks[($week_now - $index + 6)%7]
+                ];
+            }
+        }
 
         return $result;
     }
