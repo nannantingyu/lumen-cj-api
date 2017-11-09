@@ -13,6 +13,8 @@ class EconomicController extends Controller
     public function getcjdatas(Request $request) {
         $date = $request->input("d", date("Y-m-d"));
         $cache_key = 'getcjdatas'.$date;
+        $pcOrm = $request->input('pcOrm', 'pc');
+
         $bb = $request->input("bb", false);
 //        $value = \Cache::store('file')->get($cache_key);
 //        if ($value && !$bb) {
@@ -22,9 +24,14 @@ class EconomicController extends Controller
         $weekData = $this->getWeekData($request);
         $cjdata = $this->getDates($request);
 
-        $all_cj = [];
-        foreach($cjdata as $data) {
-            $all_cj[substr($data['stime'], 11, 5).'_'.$data['country_cn']]['_ch'][] = $data;
+        if($pcOrm == 'pc') {
+            $all_cj = [];
+            foreach($cjdata as $data) {
+                $all_cj[substr($data['stime'], 11, 5).'_'.$data['country_cn']]['_ch'][] = $data;
+            }
+        }
+        else {
+            $all_cj = $cjdata;
         }
 
         $sjdata = $this->getcjevent($request);
@@ -81,7 +88,7 @@ class EconomicController extends Controller
         $reg = $request->input("reg");
         $ci = $request->input("ci", 0);
 
-        $calendars = EconomicCalendar::whereDate('pub_time', $date);
+        $calendars = EconomicCalendar::whereDate('pub_time', $date)->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本']);
         if(!empty($reg)) {
             $calendars = $calendars->where('country', $reg);
         }
@@ -148,8 +155,8 @@ class EconomicController extends Controller
             ];
         }
 
-        $result['pre'] = date("Y-m-d", $date - 24 * 3600);
-        $result['next'] = date("Y-m-d", $date + 24 * 3600);
+        $result['pre'] = date("Y-m-d", $date - ($week_now+6) * 24 * 3600);
+        $result['next'] = date("Y-m-d", $date + (8-$week_now) *24 * 3600);
         $result['w'] = $all_weeks;
 
         return $result;
@@ -232,6 +239,9 @@ class EconomicController extends Controller
             foreach($d as $k=>$v) {
                 if(in_array($k, array_keys($key_map))) {
                     $r[$key_map[$k]] = $v;
+                    if($key_map[$k] == 'res' and !in_array($r[$key_map[$k]], ['未公布', '影响较小'])) {
+                        $r[$key_map[$k]] = $r[$key_map[$k]].'金银';
+                    }
                 }
             }
 
