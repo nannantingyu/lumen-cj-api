@@ -13,10 +13,11 @@ class EconomicController extends Controller
     public function getcjdatas(Request $request) {
         $date = $request->input("d", date("Y-m-d"));
         $cache_key = 'getcjdatas'.$date;
-        $value = \Cache::store('file')->get($cache_key);
-        if ($value) {
-            return json_decode($value, true);
-        }
+        $bb = $request->input("bb", false);
+//        $value = \Cache::store('file')->get($cache_key);
+//        if ($value && !$bb) {
+//            return json_decode($value, true);
+//        }
 
         $weekData = $this->getWeekData($request);
         $cjdata = $this->getDates($request);
@@ -221,7 +222,8 @@ class EconomicController extends Controller
             'data_define'       => 'PARAGHRASE',
             'count_way'         => 'PIC_INTERPRET',
             'country_cn'        => 'COUNTRY_CN',
-            'dataname'          => 'IDX_DESC_CN'
+            'dataname'          => 'IDX_DESC_CN',
+            'influence'         => 'res'
         ];
 
         $ret = [];
