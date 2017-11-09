@@ -88,7 +88,7 @@ class EconomicController extends Controller
         $reg = $request->input("reg");
         $ci = $request->input("ci", 0);
 
-        $calendars = EconomicCalendar::whereDate('pub_time', $date)->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本']);
+        $calendars = EconomicCalendar::whereDate('pub_time', $date)->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本'])->orderBy('pub_time', 'asc');
         if(!empty($reg)) {
             $calendars = $calendars->where('country', $reg);
         }
