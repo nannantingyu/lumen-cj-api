@@ -117,7 +117,9 @@ class EconomicController extends Controller
         $limit1 = $request->input('limit1');
         $limit2 = $request->input('limit2');
 
-        $past = EconomicCalendar::whereDate('pub_time', $date)->where('pub_time', '<=', $now)->orderBy("pub_time", "desc");
+        $past = EconomicCalendar::whereDate('pub_time', $date)
+            ->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本'])
+            ->where('pub_time', '<=', $now)->orderBy("pub_time", "desc");
         if(!is_null($limit1)) {
             $past = $past->take($limit1);
         }
@@ -125,7 +127,9 @@ class EconomicController extends Controller
         $past = $past->get()->toArray();
         $past = array_reverse($past);
 
-        $will = EconomicCalendar::whereDate('pub_time', $date)->where('pub_time', '>', $now)->orderBy("pub_time", "asc");
+        $will = EconomicCalendar::whereDate('pub_time', $date)
+            ->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本'])
+            ->where('pub_time', '>', $now)->orderBy("pub_time", "asc");
         if(!is_null($limit2)) {
             $will = $will->take($limit2);
         }
