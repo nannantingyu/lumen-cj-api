@@ -51,6 +51,7 @@ class EconomicController extends Controller
     public function getcjevent(Request $request) {
         $date = $request->input("d", date("Y-m-d"));
         $sj_data = EconomicEvent::whereDate('time', $date)
+            ->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本'])
             ->select("id", 'time as event_time', 'country', 'city as area', 'importance', 'event as event_desc')
             ->get()
             ->toArray();
@@ -67,6 +68,7 @@ class EconomicController extends Controller
     public function getcjholiday(Request $request) {
         $date = $request->input("d", date("Y-m-d"));
         $hj_data = EconomicHoliday::whereDate('time', $date)
+            ->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本'])
             ->select("id", 'time as event_time', 'country', 'market as area', 'detail as event_desc')
             ->get()
             ->toArray();
