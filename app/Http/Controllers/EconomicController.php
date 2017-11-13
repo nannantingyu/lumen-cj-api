@@ -90,7 +90,9 @@ class EconomicController extends Controller
         $reg = $request->input("reg");
         $ci = $request->input("ci", 0);
 
-        $calendars = EconomicCalendar::whereDate('pub_time', $date)->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本'])->orderBy('pub_time', 'asc');
+        $calendars = EconomicCalendar::whereDate('pub_time', $date)
+            ->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本'])
+            ->orderBy('pub_time', 'asc');
         if(!empty($reg)) {
             $calendars = $calendars->where('country', $reg);
         }
@@ -269,5 +271,90 @@ class EconomicController extends Controller
         }
 
         return $ret;
+    }
+
+    /**
+     * 数据和事件合并
+     */
+    public function fedata(Request $request){
+        $date = $request['date'];
+        $country = $request->input('country');
+        $rele = $request['rele'];
+        $type = $request->input('type', 0);
+
+        if(!$country) {
+            $country = '美国,欧元区,德国,英国,法国,中国,日本';
+        }
+
+        if($date) {
+            $date = Date('Y-m-d',strtotime($date));
+        }
+        else {
+            $date = Date('Y-m-d',time());
+        }
+
+        $enddate = $request->input('enddate', $date);
+
+        $calendarData = EconomicCalendar::whereDate('pub_time', '>=', $date.' 00:00:00')
+            ->whereDate('pub_time', '<=', $enddate. ' 23:59:59')
+            ->whereIn('country', explode(',', $country));
+
+        $eventData = EconomicEvent::whereDate('time', '>=', $date.' 00:00:00')
+            ->whereDate('time', '<=', $enddate. ' 23:59:59')
+            ->whereIn('country', explode(',', $country));
+
+        if($rele){
+            $releData = explode('_',$rele);
+            if($releData[1] == 1){
+                $calendarData = $calendarData->where('importance', $releData[0]);
+                $eventData = $eventData->where('importance', $releData[0]);
+            }else if($releData[1] == 2){
+                $calendarData = $calendarData->where('importance', '>=', $releData[0]);
+                $eventData = $eventData->where('importance', '>=', $releData[0]);
+            }else if($releData[1]==3){
+                $calendarData = $calendarData->whereBetween('importance', explode(',', $releData[0]));
+                $eventData = $eventData->whereBetween('importance', explode(',', $releData[0]));
+            }
+        }
+
+        $ret = [];
+        if($type == 1 or $type == 0) {
+            $calendarData = $calendarData
+                ->select('quota_name as title', 'pub_time as stime', 'country as country_cn', 'importance as idx_relevance', 'former_value as previous_price', 'predicted_value as surver_price', 'published_value as actual_price', 'influence as affect')
+                ->orderBy('pub_time', 'asc')
+                ->get()
+                ->toArray();
+
+            $calendarData = array_map(function($dt){
+                $dt['type'] = 1;
+                if(!in_array($dt['affect'], ['未公布', '影响较小'])) {
+                    $dt['affect'] .= '金银';
+                }
+
+                return $dt;
+            }, $calendarData);
+
+            if(!empty($calendarData)) {
+                $ret = array_merge($ret, $calendarData);
+            }
+        }
+
+        if($type == 2 or $type == 0) {
+            $eventData = $eventData->select('country', 'city as area', 'event as event_desc', 'time as event_time', 'importance')
+                ->orderBy('time', 'asc')
+                ->get()
+                ->toArray();
+
+            $eventData = array_map(function($dt){
+                $dt['type'] = 2;
+                return $dt;
+            }, $eventData);
+
+            if(!empty($eventData)) {
+                $ret = array_merge($ret, $eventData);
+            }
+        }
+
+        return['success'=>1, 'value'=>$ret];
     }
 }
