@@ -8,11 +8,9 @@ use App\Models\Kuaixun;
 class KuaixunController extends Controller
 {
     public function getkx(Request $request) {
-        $date = $request->input("d", date("Y-m-d"));
         $kuaixun = new Kuaixun();
 
         $ret = $kuaixun->getKuaixun($request->input('page'), $request->input('num'));
-        return $ret;
+        return ['success'=>1, 'value'=>$ret];
     }
-
 }
