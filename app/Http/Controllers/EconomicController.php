@@ -287,13 +287,14 @@ class EconomicController extends Controller
         }
 
         if($date) {
-            $date = Date('Y-m-d',strtotime($date));
+            $date = Date('Y-m-d', strtotime($date));
         }
         else {
-            $date = Date('Y-m-d',time());
+            $date = Date('Y-m-d', time());
         }
 
         $enddate = $request->input('enddate', $date);
+        $enddate = date('Y-m-d', strtotime($enddate));
 
         $calendarData = EconomicCalendar::whereDate('pub_time', '>=', $date.' 00:00:00')
             ->whereDate('pub_time', '<=', $enddate. ' 23:59:59')
