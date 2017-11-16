@@ -22,7 +22,7 @@ class KuaixunController extends Controller
             }
         }
 
-        return ['success'=>1, 'value'=>$ret];
+        return ['success'=>1, 'value'=>array_values($ret)];
     }
 
     private function inWords($str, $keys) {
