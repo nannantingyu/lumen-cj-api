@@ -119,24 +119,54 @@ class EconomicController extends Controller
         $limit1 = $request->input('limit1');
         $limit2 = $request->input('limit2');
 
-        $past = EconomicCalendar::whereDate('pub_time', $date)
+
+        $today = EconomicCalendar::whereDate('pub_time', $date)
             ->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本'])
-            ->where('pub_time', '<=', $now)->orderBy("pub_time", "desc");
-        if(!is_null($limit1)) {
-            $past = $past->take($limit1);
+            ->orderBy("pub_time", "asc")
+            ->get()
+            ->toArray();
+
+        $all_past = [];
+        $all_will = [];
+        foreach($today as $data) {
+            if($data['pub_time'] <= $now) {
+                $all_past[] = $data;
+            }
+            else{
+                $all_will[] = $data;
+            }
         }
 
-        $past = $past->get()->toArray();
-        $past = array_reverse($past);
-
-        $will = EconomicCalendar::whereDate('pub_time', $date)
-            ->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本'])
-            ->where('pub_time', '>', $now)->orderBy("pub_time", "asc");
-        if(!is_null($limit2)) {
-            $will = $will->take($limit2);
+        if(count($all_past) < $limit1) {
+            $limit2 += $limit1 - count($all_past);
         }
 
-        $will = $will->get()->toArray();
+        if(count($all_will) < $limit2) {
+            $limit1 += $limit2 - count($all_will);
+        }
+
+        $past = array_slice($all_past, -$limit1);
+        $will = array_slice($all_will, 0, $limit2);
+
+
+//        $past = EconomicCalendar::whereDate('pub_time', $date)
+//            ->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本'])
+//            ->where('pub_time', '<=', $now)->orderBy("pub_time", "desc");
+//        if(!is_null($limit1)) {
+//            $past = $past->take($limit1);
+//        }
+//
+//        $past = $past->get()->toArray();
+//        $past = array_reverse($past);
+//
+//        $will = EconomicCalendar::whereDate('pub_time', $date)
+//            ->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本'])
+//            ->where('pub_time', '>', $now)->orderBy("pub_time", "asc");
+//        if(!is_null($limit2)) {
+//            $will = $will->take($limit2);
+//        }
+//
+//        $will = $will->get()->toArray();
 
         return $this->dataToData(array_merge($past, $will));
     }
