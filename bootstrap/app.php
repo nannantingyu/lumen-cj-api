@@ -38,6 +38,7 @@ $app->withEloquent();
 |
 */
 
+$app->register(Illuminate\Redis\RedisServiceProvider::class);
 $app->singleton(
     Illuminate\Contracts\Debug\ExceptionHandler::class,
     App\Exceptions\Handler::class

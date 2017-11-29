@@ -26,3 +26,5 @@ $router->get('/getcjevent', 'EconomicController@getcjevent');
 $router->get('/getcjholiday', 'EconomicController@getcjholiday');
 $router->get('/fedata', 'EconomicController@fedata');
 $router->get('/kx', 'KuaixunController@getkx');
+$router->get('/articlelist', 'ArticleController@articlelist');
+$router->get('/articledetail', 'ArticleController@articledetail');
