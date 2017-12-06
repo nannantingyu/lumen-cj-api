@@ -49,7 +49,8 @@ class EconomicController extends Controller
     }
 
     private function getcountry($request) {
-        $country = $request->input("country", '美国,欧元区,德国,英国,法国,中国,日本');
+        $country = $request->input("country");
+        $country = empty($country)?'美国,欧元区,德国,英国,法国,中国,日本':$country;
         $country = explode(",", $country);
 
         return $country;
