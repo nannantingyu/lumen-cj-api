@@ -48,10 +48,19 @@ class EconomicController extends Controller
         return $ret;
     }
 
+    private function getcountry($request) {
+        $country = $request->input("country", '美国,欧元区,德国,英国,法国,中国,日本');
+        $country = explode(",", $country);
+
+        return $country;
+    }
+
     public function getcjevent(Request $request) {
         $date = $request->input("d", date("Y-m-d"));
+        $country = $this->getcountry($request);
+
         $sj_data = EconomicEvent::whereDate('time', $date)
-            ->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本'])
+            ->whereIn('country', $country)
             ->select("id", 'time as event_time', 'country', 'city as area', 'importance', 'event as event_desc')
             ->get()
             ->toArray();
@@ -67,8 +76,9 @@ class EconomicController extends Controller
 
     public function getcjholiday(Request $request) {
         $date = $request->input("d", date("Y-m-d"));
+        $country = $this->getcountry($request);
         $hj_data = EconomicHoliday::whereDate('time', $date)
-            ->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本'])
+            ->whereIn('country', $country)
             ->select("id", 'time as event_time', 'country', 'market as area', 'detail as event_desc')
             ->get()
             ->toArray();
@@ -89,9 +99,9 @@ class EconomicController extends Controller
         $limit = $request->input("limit");
         $reg = $request->input("reg");
         $ci = $request->input("ci", 0);
-
+        $country = $this->getcountry($request);
         $calendars = EconomicCalendar::whereDate('pub_time', $date)
-            ->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本'])
+            ->whereIn('country', $country)
             ->orderBy('pub_time', 'asc');
         if(!empty($reg)) {
             $calendars = $calendars->where('country', $reg);
@@ -119,9 +129,9 @@ class EconomicController extends Controller
         $limit1 = $request->input('limit1');
         $limit2 = $request->input('limit2');
 
-
+        $country = $this->getcountry($request);
         $today = EconomicCalendar::whereDate('pub_time', $date)
-            ->whereIn('country', ['美国', '欧元区', '德国', '英国', '法国', '中国', '日本'])
+            ->whereIn('country', $country)
             ->orderBy("pub_time", "asc")
             ->get()
             ->toArray();
@@ -177,7 +187,6 @@ class EconomicController extends Controller
         if(!$date) {
             $date = time();
         }
-
 
         $weeks = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
         $all_weeks = [];
@@ -312,9 +321,7 @@ class EconomicController extends Controller
         $rele = $request['rele'];
         $type = $request->input('type', 0);
 
-        if(!$country) {
-            $country = '美国,欧元区,德国,英国,法国,中国,日本';
-        }
+        $country = $this->getcountry($request);
 
         if($date) {
             $date = Date('Y-m-d', strtotime($date));
@@ -328,11 +335,11 @@ class EconomicController extends Controller
 
         $calendarData = EconomicCalendar::whereDate('pub_time', '>=', $date.' 00:00:00')
             ->whereDate('pub_time', '<=', $enddate. ' 23:59:59')
-            ->whereIn('country', explode(',', $country));
+            ->whereIn('country', $country);
 
         $eventData = EconomicEvent::whereDate('time', '>=', $date.' 00:00:00')
             ->whereDate('time', '<=', $enddate. ' 23:59:59')
-            ->whereIn('country', explode(',', $country));
+            ->whereIn('country', $country);
 
         if($rele){
             $releData = explode('_',$rele);
