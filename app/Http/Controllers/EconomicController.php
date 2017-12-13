@@ -57,10 +57,11 @@ class EconomicController extends Controller
     }
 
     public function getcjevent(Request $request) {
-        $date = $request->input("d", date("Y-m-d"));
+        $date = $this->getDateInparams($request);
         $country = $this->getcountry($request);
 
-        $sj_data = EconomicEvent::whereDate('time', $date)
+        $sj_data = EconomicEvent::where('time', ">=", $date['st'])
+            ->where('time', '<=', $date['et'])
             ->whereIn('country', $country)
             ->select("id", 'time as event_time', 'country', 'city as area', 'importance', 'event as event_desc')
             ->get()
@@ -76,9 +77,10 @@ class EconomicController extends Controller
     }
 
     public function getcjholiday(Request $request) {
-        $date = $request->input("d", date("Y-m-d"));
+        $date = $this->getDateInparams($request);
         $country = $this->getcountry($request);
-        $hj_data = EconomicHoliday::whereDate('time', $date)
+        $hj_data = EconomicHoliday::where('time', ">=", $date['st'])
+            ->where('time', '<=', $date['et'])
             ->whereIn('country', $country)
             ->select("id", 'time as event_time', 'country', 'market as area', 'detail as event_desc')
             ->get()
@@ -96,12 +98,13 @@ class EconomicController extends Controller
     }
 
     public function getDates(Request $request) {
-        $date = $request->input("d", date("Y-m-d"));
+        $date = $this->getDateInparams($request);
         $limit = $request->input("limit");
         $reg = $request->input("reg");
         $ci = $request->input("ci", 0);
         $country = $this->getcountry($request);
-        $calendars = EconomicCalendar::whereDate('pub_time', $date)
+        $calendars = EconomicCalendar::where('pub_time', ">=", $date['st'])
+            ->where('pub_time', '<=', $date['et'])
             ->whereIn('country', $country)
             ->orderBy('pub_time', 'asc');
         if(!empty($reg)) {
@@ -124,14 +127,15 @@ class EconomicController extends Controller
     }
 
     public function getPastorWillFd(Request $request) {
-        $date = date('Y-m-d');
+        $date = $this->getDateInparams($request);
         $now = date('Y-m-d H:i:s');
 
         $limit1 = $request->input('limit1');
         $limit2 = $request->input('limit2');
 
         $country = $this->getcountry($request);
-        $today = EconomicCalendar::whereDate('pub_time', $date)
+        $today = EconomicCalendar::where('pub_time', ">=", $date['st'])
+            ->where('pub_time', '<=', $date['et'])
             ->whereIn('country', $country)
             ->orderBy("pub_time", "asc")
             ->get()
@@ -395,5 +399,15 @@ class EconomicController extends Controller
         }
 
         return['success'=>1, 'value'=>$ret];
+    }
+
+    private function getDateInparams(Request $request) {
+        $date = $request->input("d", date("Y-m-d"));
+        $date = substr($date, 0, 10);
+
+        return [
+            'st'=> $date." 00:00:00",
+            'et'=> $date." 23:59:59"
+        ];
     }
 }

@@ -10,8 +10,9 @@ class KuaixunController extends Controller
     public function getkx(Request $request) {
         $kuaixun = new Kuaixun();
         $platform = $request->input('p', 'pc');
+        $date = $request->input('st', null);
 
-        $ret = $kuaixun->getKuaixun($request->input('page'), $request->input('num'));
+        $ret = $kuaixun->getKuaixun($request->input('page'), $request->input('num'), $date);
 
         foreach ($ret as $key=>$val) {
             if($this->inWords($val->body, ['jin10.com', 'fx678.com', 'wallstreetcn.com', '金十'])) {
