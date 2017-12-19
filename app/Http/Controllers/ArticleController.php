@@ -47,6 +47,7 @@ class ArticleController extends Controller
                 ->first();
 
             if($article) {
+                $article->introtext = str_replace("width: 100%; height: 100%;", "", $article->introtext);
                 return ['success'=>1, 'value'=>$article];
             }
         }
